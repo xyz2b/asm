@@ -28,7 +28,6 @@ start:
 
         mov byte [0x02], '.'
         mov byte [0x03], 0x04
-
 current:
         times 510-(current-start) db 0                  ;db位指令: 填充一个字节的数据，值为0                                     ;times位指令: 重复后面的位指令"db 0" 多少次
 
