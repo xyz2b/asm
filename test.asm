@@ -8,26 +8,30 @@ start:
         mov byte [0x02], 's'
         mov byte [0x03], 0x04
 
-        mov byte [0x02], 's'
-        mov byte [0x03], 0x04
+        mov byte [0x04], 's'
+        mov byte [0x05], 0x04
 
-        mov byte [0x02], 'e'
-        mov byte [0x03], 0x04
+        mov byte [0x06], 'e'
+        mov byte [0x07], 0x04
 
-        mov byte [0x02], 'm'
-        mov byte [0x03], 0x04
+        mov byte [0x08], 'm'
+        mov byte [0x09], 0x04
 
-        mov byte [0x02], 'b'
-        mov byte [0x03], 0x04
+        mov byte [0x0a], 'b'
+        mov byte [0x0b], 0x04
 
-        mov byte [0x02], 'l'
-        mov byte [0x03], 0x04
+        mov byte [0x0c], 'l'
+        mov byte [0x0d], 0x04
 
-        mov byte [0x02], 'y'
-        mov byte [0x03], 0x04
+        mov byte [0x0e], 'y'
+        mov byte [0x0f], 0x04
 
-        mov byte [0x02], '.'
-        mov byte [0x03], 0x04
+        mov byte [0x10], '.'
+        mov byte [0x11], 0x04
+
+again:
+        jmp near again
+
 current:
         times 510-(current-start) db 0                  ;db位指令: 填充一个字节的数据，值为0                                     ;times位指令: 重复后面的位指令"db 0" 多少次
 
