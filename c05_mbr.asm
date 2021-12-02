@@ -1,38 +1,27 @@
+begin:
+        jmp start
+
+mytext  db 'L', 0x07, 'a', 0x07, 'b', 0x07, 'e', 0x07, 'l', 0x07, ' ', 0x07,\
+           'o', 0x07, 'f', 0x07, 'f', 0x07, 's', 0x07, 'e', 0x07, 't', 0x07, ':', 0x07,
+
 start:
         ;文件名c05_mbr.asm
         ;文件说明: 硬盘主引导扇区代码
         ;创建日期: 2021-12-02 22:01
 
+
+        mov ax, 0x7c0                ;0x07c0:0x0000开始的段，物理地址是0x7c00
+        mov ds, ax
+
         mov ax, 0xb800               ;指向文本模式的显示缓冲区
         mov es, ax
 
         ;以下显示字符串"Label offset:"
-        mov byte [es:0x00], 'L'
-        mov byte [es:0x01], 0x07
-        mov byte [es:0x02], 'a'
-        mov byte [es:0x03], 0x07
-        mov byte [es:0x04], 'b'
-        mov byte [es:0x05], 0x07
-        mov byte [es:0x06], 'e'
-        mov byte [es:0x07], 0x07
-        mov byte [es:0x08], 'l'
-        mov byte [es:0x09], 0x07
-        mov byte [es:0x0a], ' '
-        mov byte [es:0x0b], 0x07
-        mov byte [es:0x0c], 'o'
-        mov byte [es:0x0d], 0x07
-        mov byte [es:0x0e], 'f'
-        mov byte [es:0x0f], 0x07
-        mov byte [es:0x10], 'f'
-        mov byte [es:0x11], 0x07
-        mov byte [es:0x12], 's'
-        mov byte [es:0x13], 0x07
-        mov byte [es:0x14], 'e'
-        mov byte [es:0x15], 0x07
-        mov byte [es:0x16], 't'
-        mov byte [es:0x17], 0x07
-        mov byte [es:0x18], ':'
-        mov byte [es:0x19], 0x07
+        cld
+        mov si, mytext
+        mov di, 0
+        mov cx, (start-mytext)/2
+        rep movsw
 
         mov ax, number        ;取得标号number的偏移地址
         mov bx, 10
@@ -101,6 +90,7 @@ again:
 
 number  db 0, 0, 0, 0, 0
 
+
 current:
-        times 510-(current-start) db 0
+        times 510-($-$$) db 0
         db 0x55, 0xAA
