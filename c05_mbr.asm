@@ -9,7 +9,7 @@ start:
         ;文件说明: 硬盘主引导扇区代码
         ;创建日期: 2021-12-02 22:01
 
-
+        ;设置数据段的基地址
         mov ax, 0x7c0                ;0x07c0:0x0000开始的段，物理地址是0x7c00
         mov ds, ax
 
@@ -23,70 +23,31 @@ start:
         mov cx, (start-mytext)/2
         rep movsw
 
-        mov ax, number        ;取得标号number的偏移地址
-        mov bx, 10
+        mov ax, number                ;取得标号number的偏移地址
 
-        ;设置数据段的基地址
-        mov cx, cs
-        mov ds, cx
+        mov bx, ax
+        mov si, 10                    ;除数
+        mov cx, 5                     ;控制循环次数
 
-        ;求个位上的数字
+digit:
         xor dx, dx
-        div bx
-        mov [0x7c00+number+0x00], dl     ;保存个位上的数字
+        div si
+        mov [bx], dl                  ;保存每一位上的数字
+        inc bx
+        loop digit
 
-        ;求十位上的数字
-        xor dx, dx
-        div bx
-        mov [0x7c00+number+0x01], dl     ;保存十位上的数字
-
-        ;求百位上的数字
-        xor dx, dx
-        div bx
-        mov [0x7c00+number+0x02], dl     ;保存百位上的数字
-
-        ;求千位上的数字
-        xor dx, dx
-        div bx
-        mov [0x7c00+number+0x03], dl     ;保存千位上的数字
-
-        ;求万位上的数字
-        xor dx, dx
-        div bx
-        mov [0x7c00+number+0x04], dl     ;保存万位上的数字
-
-        ;显示万位上的数字
-        mov al, [0x7c00+number+0x04]
+        mov bx, number
+        mov si, 4
+show:
+        mov al, [bx+si]                  ;取保存的数位的值
         add al, 0x30
-        mov [es:0x1a], al
-        mov byte [es:0x1b], 0x07
+        mov ah, 0x07                  ;设置字符的属性
+        mov [es:di], ax               ;设置显存
+        add di, 2
+        dec si
+        jns show
 
-        ;显示千位上的数字
-        mov al, [0x7c00+number+0x03]
-        add al, 0x30
-        mov [es:0x1c], al
-        mov byte [es:0x1d], 0x07
-
-        ;显示百位上的数字
-        mov al, [0x7c00+number+0x02]
-        add al, 0x30
-        mov [es:0x1e], al
-        mov byte [es:0x1f], 0x07
-
-        ;显示十位上的数字
-        mov al, [0x7c00+number+0x01]
-        add al, 0x30
-        mov [es:0x20], al
-        mov byte [es:0x21], 0x07
-
-        ;显示个位上的数字
-        mov al, [0x7c00+number+0x00]
-        add al, 0x30
-        mov [es:0x22], al
-        mov byte [es:0x23], 0x07
-
-again:
-        jmp again
+        jmp $
 
 number  db 0, 0, 0, 0, 0
 
