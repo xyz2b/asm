@@ -129,7 +129,7 @@ calc_segment_base:                          ;计算用户程序入口点的16位
        shr ax, 4                            ;逻辑右移指令
        ror dx, 4                            ;循环右移指令，将dx低四位(入口点物理地址的高4位)移动到dx高四位
        and dx, 0xf000                       ;取dx高四位
-       or  ax, dx                           ;用户程序入口点的16位段基地址
+       or  ax, dx                           ;用户程序入口点代码段的16位逻辑段地址
 
        pop dx
 
