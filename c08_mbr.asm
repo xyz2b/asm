@@ -50,8 +50,8 @@ SECTION mbr align=16 vstart=0x7c00
         call read_hard_disk_0
         loop @2
 
-        pop ds
-                                           ;恢复数据段基址到用户程序头部段
+        pop ds                                   ;恢复数据段基址到用户程序头部段
+
   direct:
         ;计算用户程序入口点代码段基地址
         mov dx, [0x08]
