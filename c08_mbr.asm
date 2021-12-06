@@ -57,7 +57,7 @@ SECTION mbr align=16 vstart=0x7c00
         mov dx, [0x08]
         mov ax, [0x06]
         call calc_segment_base
-        mov [0x06], ax                           ;回填修正后的入口点代码段基址（段重定位）
+        mov [0x06], ax                           ;回填修正后的用户程序入口点代码段的逻辑段地址（段重定位）
 
         ;开始处理用户程序段重定位表
 
