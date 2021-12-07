@@ -61,7 +61,7 @@ SECTION mbr align=16 vstart=0x7c00
 
         ;开始处理用户程序段重定位表
         mov cx, [0x0a]                           ;需要重定位的项目数量
-        mov bx, [0x0c]                           ;重定位表首地址
+        mov bx, 0x0c                             ;重定位表首地址
   realloc:
         mov dx, [bx+0x02]                        ;32位段汇编地址地址的高16位
         mov ax, [bx]                             ;32位段汇编地址地址的低16位
