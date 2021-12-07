@@ -137,7 +137,7 @@ calc_segment_base:                          ;计算16位段基地址
        adc dx, [cs:phy_base+0x02]           ;adc，除了正常的加法，还要加上执行该指令时FLAGS寄存器中进位标志位(CF)的值
        shr ax, 4                            ;逻辑右移指令
        ror dx, 4                            ;循环右移指令，将dx低四位(汇编地址的高4位)移动到dx高四位
-       and dx, 0xf000                       ;取dx高四位
+       and dx, 0xf000                       ;取dx高四位，其余位置0，这样下面与的时候这些位才不会受影响
        or  ax, dx                           ;16位段基地址
 
        pop dx
