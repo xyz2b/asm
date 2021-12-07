@@ -14,7 +14,7 @@ SECTION mbr align=16 vstart=0x7c00
         mov dx, [phy_base+0x02]
         mov bx, 16
         div bx
-        mov ds, ax                               ;令DS和ES指向用户程序所加载的段，用于操作用户程序
+        mov ds, ax                               ;令DS和ES指向用户程序头部段，用于操作用户程序
         mov es, ax
 
         ;读取程序起始部分，从硬盘上读取一个扇区
@@ -50,8 +50,8 @@ SECTION mbr align=16 vstart=0x7c00
         call read_hard_disk_0
         loop @2
 
-        pop ds
-                                           ;恢复数据段基址到用户程序头部段
+        pop ds                                   ;恢复数据段基址到用户程序头部段
+
   direct:
         ;计算用户程序入口点代码段基地址
         mov dx, [0x08]
@@ -60,8 +60,17 @@ SECTION mbr align=16 vstart=0x7c00
         mov [0x06], ax                           ;回填修正后的入口点代码段基址（段重定位）
 
         ;开始处理用户程序段重定位表
+        mov cx, [0x0a]                           ;需要重定位的项目数量
+        mov bx, [0x0c]                           ;重定位表首地址
+  realloc:
+        mov dx, [bx+0x02]                        ;32位段汇编地址地址的高16位
+        mov ax, [bx]                             ;32位段汇编地址地址的低16位
+        calc_segment_base
+        mov [bx], ax                             ;回填修正后的段基地址
+        add bx, 4                                ;下一个重定位项（每项占4个字节）
+        loop realloc
 
-
+        jmp far [0x04]                           ;转移到用户程序执行
 ;------------------------------------------------------------------------------------
 read_hard_disk_0:                          ;从硬盘读取一个逻辑扇区
                                            ;输入：DI:SI = 起始逻辑扇区号
@@ -119,17 +128,17 @@ read_hard_disk_0:                          ;从硬盘读取一个逻辑扇区
 
         ret
 ;------------------------------------------------------------------------------------
-calc_segment_base:                          ;计算用户程序入口点的16位段基地址
-                                            ;输入：DX:AX = 用户程序入口点的32位汇编地址（相对于程序开头）
+calc_segment_base:                          ;计算16位段基地址
+                                            ;输入：DX:AX = 32位汇编地址（相对于程序开头）
                                             ;返回：AX = 16位段基地址
        push dx
 
        add ax, [cs:phy_base]                ;如果有进位，则CF进位标志位为1
        adc dx, [cs:phy_base+0x02]           ;adc，除了正常的加法，还要加上执行该指令时FLAGS寄存器中进位标志位(CF)的值
        shr ax, 4                            ;逻辑右移指令
-       ror dx, 4                            ;循环右移指令，将dx低四位(入口点汇编地址的高4位)移动到dx高四位
+       ror dx, 4                            ;循环右移指令，将dx低四位(汇编地址的高4位)移动到dx高四位
        and dx, 0xf000                       ;取dx高四位
-       or  ax, dx                           ;用户程序入口点的16位段基地址
+       or  ax, dx                           ;16位段基地址
 
        pop dx
 
