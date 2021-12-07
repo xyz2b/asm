@@ -65,16 +65,16 @@ SECTION mbr align=16 vstart=0x7c00
   realloc:
         mov dx, [bx+0x02]                        ;32位段汇编地址地址的高16位
         mov ax, [bx]                             ;32位段汇编地址地址的低16位
-        calc_segment_base
+        call calc_segment_base
         mov [bx], ax                             ;回填修正后的段基地址
         add bx, 4                                ;下一个重定位项（每项占4个字节）
         loop realloc
 
         jmp far [0x04]                           ;转移到用户程序执行
 ;------------------------------------------------------------------------------------
-read_hard_disk_0:                          ;从硬盘读取一个逻辑扇区
-                                           ;输入：DI:SI = 起始逻辑扇区号
-                                           ;      DS:BX = 目标缓冲区地址
+read_hard_disk_0:                                ;从硬盘读取一个逻辑扇区
+                                                 ;输入：DI:SI = 起始逻辑扇区号
+                                                 ;      DS:BX = 目标缓冲区地址
         push ax
         push bx
         push cx
@@ -111,9 +111,9 @@ read_hard_disk_0:                          ;从硬盘读取一个逻辑扇区
         in al, dx
         and al, 0x88
         cmp al, 0x08
-        jnz .waits                         ;位7为0且位3为1，表明硬盘不忙，且硬盘已经准备好数据传输
+        jnz .waits                               ;位7为0且位3为1，表明硬盘不忙，且硬盘已经准备好数据传输
 
-        mov cx, 256                        ;总共要读取的次数，要读取一个扇区，一个扇区512字节，每次读取2个字节，所以需要读取256次
+        mov cx, 256                              ;总共要读取的次数，要读取一个扇区，一个扇区512字节，每次读取2个字节，所以需要读取256次
         mov dx, 0x1f0
   .readw
         in ax, dx
