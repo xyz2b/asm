@@ -42,7 +42,97 @@ SECTION code_1 align=16 vstart=0                                     ;定义代�
       push es
 
       ;以下取当前光标位置
+      mov dx, 0x3d4
+      mov al, 0x0e
+      out dx, al
+      mov dx, 0x3d5
+      in al, dx                                                      ;光标的高8位
+      mov ah, al
 
+      mov dx, 0x3d4
+      mov al, 0x0f
+      out dx, al
+      mov dx, 0x3d5
+      in al, dx                                                      ;光标的低8位
+      mov bx, ax                                                     ;BX=代表光标位置的16位数
+
+      cmp cl, 0x0d                                                   ;回车符？
+      jnz .put_0a
+      mov bl, 80                                                     ;计算光标在当前行行首时的位置数值
+      mov ax, bx
+      div bl
+      mul bl
+      mov bx, ax                                                     ;BX=光标处于当前行首时的位置数值
+      jmp .set_cursor                                                ;设置光标位置
+
+
+  .put_0a:
+      cmp cl, 0x0a                                                   ;换行符？
+      jnz .put_other                                                 ;普通字符
+      add bx, 80                                                     ;计算光标在下一行当前列时的位置数值
+      jmp .roll_screen                                               ;判断光标位置是否超界，超界需要滚屏
+
+
+  .put_other:
+      mov ax, 0x8b00
+      mov es, ax
+      shl bx, 1                                                      ;将bx左移一位，即乘以2，因为bx是光标的当前位置，
+      mov [es:bx], cl                                                ;但是一个字符在显存中需要占用两个字节，所以将当前光标位置（即当前字符需要在屏幕中显示的位置）乘以2，即得到屏幕中显示的位置在显存中对应的位置
+
+      ;以下将光标位置推进一个字符
+      shr bx, 1
+      inc bx
+
+
+  .roll_screen:
+      cmp bx, 2000                                                   ;光标超出屏幕需要滚屏？
+      jl .set_cursor
+
+      ;将第二行开始到最后一行的数据，移动到从第一行开始的位置
+      mov ax,0xb800
+      mov ds,ax
+      mov es,ax
+      cld
+      mov si,0xa0                      ;第二行开始的位置对应在显存中的偏移量
+      mov di,0x00                      ;第一行开始的位置对应在显存中的偏移量
+      mov cx,1920                      ;需要移动的字符数，需要移动的字节数为其乘以2，因为一个字符在显存中占两个字节，所以下面直接用movsw，一次移动一个字，即不需要乘以2了
+      rep movsw
+
+      ;清除屏幕最后一行
+      mov bx,3840                      ;最后一行开始的位置对应在显存中的偏移量
+      mov cx,80                        ;一行总共80个字符
+ .cls:
+      mov word[es:bx],0x0720           ;黑底白字的空格
+      add bx,2
+      loop .cls
+
+      ;将光标设置为最后一行开始的位置
+      mov bx,1920
+
+
+  .set_cursor:
+     mov dx, 0x3d4
+     mov al, 0x0e
+     out dx, al
+     mov dx, 0x3d5
+     mov al, bh
+     out dx, al
+
+     mov dx, 0x3d4
+     mov al, 0x0f
+     out dx, al
+     mov dx, 0x3d5
+     mov al, bl
+     out dx, al
+
+     pop es
+     pop ds
+     pop dx
+     pop cx
+     pop bx
+     pop ax
+
+     ret
 ;-----------------------------------------------------------------------------
   start:
        ;初始执行时，DS和ES指向用户程序头部段，CS指向当前代码段
@@ -50,17 +140,33 @@ SECTION code_1 align=16 vstart=0                                     ;定义代�
        mov ss, ax
        mov sp, stack_pointer                                       ;设置初始的栈顶指针，等同于 mov sp, 256 ，因为给栈段预留了256字节的空间
 
-       mov ax, [data_1_segment]                                      ;设置DS指向用户程序自己的数据段
+       mov ax, [data_1_segment]                                    ;设置DS指向用户程序自己的数据段1(data_1)
        mov ds, ax                                                  ;必须要在完成所有的准备工作之后，才切换DS指向用户程序自己的数据段，
                                                                    ;因为上面的准备工作都需要用到用户程序头部段的数据
        mov bx, msg0
        call put_string                                             ;显示第一段信息
 
-  exit:
+       ;ES此时还是指向用户程序头部段
+       push word [es:code_2_segment]                               ;向栈中压入code_2代码段的段地址
+       mov ax, begin
+       push ax                                                     ;向栈中压入code_2代码段的偏移地址
+       retf                                                        ;从栈中弹出偏移地址到IP，弹出段地址到CS，从而跳到code_2执行
+
+  continue:
+       mov ax, [es:data_2_segment]                                 ;设置DS指向用户程序自己的数据段2(data_2)
+       mov ds, ax
+
+       mov bx, msg1                                                ;显示第二段信息
+       call put_string
+
        jmp $
 ;=============================================================================
 SECTION code_2 align=16 vstart=0                                     ;定义代码段2（16字节对齐）
-
+  begin:
+       push word [es:code_1_segment]                                 ;向栈中压入code_1代码段的段地址
+       mov ax, continue
+       push ax                                                       ;向栈中压入code_1代码段的偏移地址
+       retf                                                          ;从栈中弹出偏移地址到IP，弹出段地址到CS，从而跳到code_1执行
 
 ;===============================================================================
 SECTION data_1 align=16 vstart=0
