@@ -87,8 +87,8 @@ SECTION code_1 align=16 vstart=0                                     ;定义代�
 
   .roll_screen:
       cmp bx, 2000                                                   ;光标超出屏幕需要滚屏？
-      jl .set_cursor
-
+      jl .set_cursor                                                 ;光标没有越界，就设置光标
+                                                                     ;如果光标越界，就不会跳转，就顺序往下执行，进行滚屏
       ;将第二行开始到最后一行的数据，移动到从第一行开始的位置
       mov ax,0xb800
       mov ds,ax
