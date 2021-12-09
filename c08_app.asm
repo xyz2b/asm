@@ -81,8 +81,8 @@ SECTION code_1 align=16 vstart=0                                     ;定义代�
       mov byte [es:bx+1], 0x07
 
       ;以下将光标位置推进一个字符
-      shr bx, 1
-      inc bx
+      shr bx, 1                                                      ;bx此时是上面显示字符在显存中的内存地址，要转换为屏幕中的光标位置，需要除以2
+      inc bx                                                         ;光标向后移动一格
 
 
   .roll_screen:
