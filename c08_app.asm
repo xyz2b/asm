@@ -156,6 +156,7 @@ SECTION code_1 align=16 vstart=0                                     ;定义代�
        retf                                                        ;从栈中弹出偏移地址到IP，弹出段地址到CS，从而跳到code_2执行
 
   continue:
+       ;ES此时还是指向用户程序头部段
        mov ax, [es:data_2_segment]                                 ;设置DS指向用户程序自己的数据段2(data_2)
        mov ds, ax
 
